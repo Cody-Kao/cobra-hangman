@@ -4,9 +4,11 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -38,7 +40,11 @@ type Hangman struct {
 }
 
 func (h *Hangman) getQuestion() string {
-	return "hello"
+	word, err := getWord()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return word
 }
 
 func max(a, b int) int {
@@ -170,6 +176,23 @@ func (h *Hangman) startGame() {
 		fmt.Println("Game is restarted!")
 		h.startGame()
 	}
+}
+
+func getWord() (string, error) {
+	f, err := os.Open("./static/words.txt")
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	numOfLine := getRandom(0, 25321) // 因為那個字母表的總行數是25322
+	fmt.Printf("The random lines of word is: %d\n", numOfLine)
+	var i int
+	for scanner.Scan() && i < numOfLine { // Read line by line
+		i++
+	}
+	return scanner.Text(), nil
 }
 
 func start(cmd *cobra.Command, args []string) {
