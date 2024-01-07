@@ -179,7 +179,7 @@ func (h *Hangman) startGame() {
 }
 
 func getWord() (string, error) {
-	f, err := os.Open("./static/words.txt")
+	f, err := os.Open("./cmd/static/words.txt")
 	if err != nil {
 		return "", err
 	}
