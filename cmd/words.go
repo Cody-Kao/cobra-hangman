@@ -1,4 +1,6 @@
-aa
+package cmd
+
+var Words string = `aa
 aardvark
 aargh
 aback
@@ -25319,4 +25321,4 @@ zoning
 zonked
 zoo
 zoom
-zooming
+zooming`

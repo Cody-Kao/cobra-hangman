@@ -4,11 +4,10 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -179,20 +178,10 @@ func (h *Hangman) startGame() {
 }
 
 func getWord() (string, error) {
-	f, err := os.Open("./cmd/static/words.txt")
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
 	numOfLine := getRandom(0, 25321) // 因為那個字母表的總行數是25322
 	fmt.Printf("The random lines of word is: %d\n", numOfLine)
-	var i int
-	for scanner.Scan() && i < numOfLine { // Read line by line
-		i++
-	}
-	return scanner.Text(), nil
+	words := strings.Split(Words, "\n")
+	return words[numOfLine], nil
 }
 
 func start(cmd *cobra.Command, args []string) {
