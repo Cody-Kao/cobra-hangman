@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 
@@ -56,6 +57,7 @@ func max(a, b int) int {
 func (h *Hangman) init() {
 	var live int // 先說好要得到的是什麼type，就不會都拿到string type，但也有可能使用者輸入的是不能轉成int的東西，所以要偵錯
 	h.hint = 2
+	h.numOfCorrect = 0
 	h.ans = h.getQuestion()
 	l := len(h.ans)
 	fmt.Println("How many lives you want (you will at least have the length of puzzle word plus 5 lives): ")
@@ -142,9 +144,14 @@ func (h *Hangman) print() bool {
 		}
 	}
 	fmt.Println()
-	fmt.Print("Letters have guessed: ")
+	keys := make([]string, 0, len(h.record))
 	for k := range h.record {
-		fmt.Print(k, " ")
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	fmt.Print("Letters have guessed: ")
+	for _, l := range keys {
+		fmt.Print(l, " ")
 	}
 	fmt.Println()
 	fmt.Printf("%d Lives left\n", h.live)
