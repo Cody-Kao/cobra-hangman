@@ -25,7 +25,7 @@ var title string = `
 				   ___/` + `_` + `|`
 
 var hidden = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("0")).
+	Foreground(lipgloss.Color("#555555")).
 	Faint(true)
 
 var warning = lipgloss.NewStyle().
@@ -47,7 +47,7 @@ var answer = lipgloss.NewStyle().
 	Bold(true)
 
 var revealAnswer = lipgloss.NewStyle().
-	Background(lipgloss.Color("#CEBE0D")).
+	Background(lipgloss.Color("#665e08")).
 	Bold(true)
 
 var bold = lipgloss.NewStyle().
@@ -58,7 +58,7 @@ var border = lipgloss.NewStyle().
 	PaddingTop(1)
 
 var notification = lipgloss.NewStyle().
-	Background(lipgloss.Color("#00ff00")).
+	Background(lipgloss.Color("#849c1e")).
 	Bold(true).
 	Align(lipgloss.Center)
 
@@ -159,6 +159,8 @@ func lossAnimation() {
 	---        
 			`,
 	}
+	fmt.Println()
+	fmt.Println()
 	for _, f := range frames {
 		fmt.Print(f)
 		time.Sleep(500 * time.Millisecond)
