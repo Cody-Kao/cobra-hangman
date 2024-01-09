@@ -8,11 +8,163 @@ import (
 	"log"
 	"math/rand"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
+
+var title string = `
+ _   _
+| | | | __ _ _ __   __ _ _ __ ___   __ _ _ __
+| |_| |/ _` + "`" + ` | '_ \ / _` + "`" + ` | '_ ` + "`" + `_  \ / _` + "`" + ` | '_ \
+|  _  | (_| | | | | (_| | | | | | | (_| | | | |
+|_| |_|\__,_|_| |_|\__, |_| |_| |_|\__,_|_| |_|
+				   ___/` + `_` + `|`
+
+var hidden = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("0")).
+	Faint(true)
+
+var warning = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#ff0000")).
+	Bold(true).
+	Align(lipgloss.Center)
+
+var highLight = lipgloss.NewStyle().
+	Background(lipgloss.Color("#09516B")).
+	Foreground(lipgloss.Color("50")).
+	Bold(true)
+
+var smallHighLight = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("50")).
+	Bold(true)
+
+var answer = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#CEBE0D")).
+	Bold(true)
+
+var revealAnswer = lipgloss.NewStyle().
+	Background(lipgloss.Color("#CEBE0D")).
+	Bold(true)
+
+var bold = lipgloss.NewStyle().
+	Bold(true)
+
+var border = lipgloss.NewStyle().
+	Border(lipgloss.DoubleBorder()).
+	PaddingTop(1)
+
+var notification = lipgloss.NewStyle().
+	Background(lipgloss.Color("#00ff00")).
+	Bold(true).
+	Align(lipgloss.Center)
+
+var errNotification = lipgloss.NewStyle().
+	Background(lipgloss.Color("#ff0000")).
+	Bold(true).
+	Align(lipgloss.Center)
+
+var question = lipgloss.NewStyle().
+	Background(lipgloss.Color("#09516B")).
+	Bold(true)
+
+var titleStyle = lipgloss.NewStyle().
+	Bold(true).
+	Border(lipgloss.RoundedBorder()).
+	BorderForeground(lipgloss.Color("50")).
+	Width(49).
+	PaddingLeft(1).
+	PaddingBottom(1)
+
+// Make your own border
+var myCuteBorder = lipgloss.Border{
+	Top:         "=",
+	Bottom:      "=",
+	Left:        "||",
+	Right:       "||",
+	TopLeft:     "=",
+	TopRight:    "=",
+	BottomLeft:  "=",
+	BottomRight: "=",
+}
+
+func winAnimation() {
+	a := `
+	 o
+	/|\
+	/ \
+	   `
+	b := `
+	 \o/
+	  |
+	 / \
+		 `
+	frames := map[string]string{a: b, b: a}
+	cur := a
+	fmt.Println()
+	for i := 0; i < 10; i++ {
+		fmt.Print(cur)
+		time.Sleep(500 * time.Millisecond)
+		fmt.Print(strings.Repeat("\033[1A\x1b[2K", 4))
+		cur = frames[cur]
+	}
+}
+
+func lossAnimation() {
+	frames := []string{
+		`
+ 	 _____ 
+	|     |
+	|     |
+	|     |
+	|     |
+	---   o
+	     /|\
+	     / \
+		    `,
+		`
+	 _____ 
+	|     |
+	|     |
+	|     |
+	|     o
+	---  /|\
+	      \\  
+		    `,
+		`
+	 _____ 
+	|     |
+	|     |
+	|     o     
+	|    /|\	 
+	---  //   
+			`,
+		`
+	 _____ 
+	|     |
+	|     o
+	|    /|\
+	|     \\
+	---       
+			`,
+		`
+	 _____ 
+	|     0
+	|    /|\
+	|     |\
+	|     
+	---        
+			`,
+	}
+	for _, f := range frames {
+		fmt.Print(f)
+		time.Sleep(500 * time.Millisecond)
+		fmt.Print(strings.Repeat("\033[1A\x1b[2K", 8))
+	}
+}
 
 // hangmanCmd represents the hangman command
 var hangmanCmd = &cobra.Command{
@@ -42,7 +194,7 @@ type Hangman struct {
 func (h *Hangman) getQuestion() string {
 	word, err := getWord()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(errNotification.Render(err.Error()))
 	}
 	return word
 }
@@ -60,22 +212,23 @@ func (h *Hangman) init() {
 	h.numOfCorrect = 0
 	h.ans = h.getQuestion()
 	l := len(h.ans)
-	fmt.Println("How many lives you want (you will at least have the length of puzzle word plus 5 lives): ")
+	fmt.Println(question.Render("How many lives you want (you will at least have the ") + highLight.Render("length of puzzle word plus 5 lives") + question.Render("): "))
 	_, err := fmt.Scanln(&live)
 	if err != nil {
-		log.Fatal(err, "Please type in an integer")
+		log.Fatal(errNotification.Render(err.Error() + "Please type in an integer"))
 	}
+	fmt.Println("========================")
 	h.live = max(l+5, live)
-	fmt.Printf("You start with %d lives\n", h.live)
+	fmt.Printf("You start with %s lives\n", smallHighLight.Render(strconv.Itoa(h.live)))
 	h.cur = make([]string, l, l)
 	h.record = make(map[string]interface{})
-	fmt.Printf("The length of word is: %d\n", l)
-	fmt.Println(h.ans)
+	fmt.Printf("The length of word is: %s\n", smallHighLight.Render(strconv.Itoa(l)))
+	fmt.Println(hidden.Render(h.ans))
 }
 
 func (h *Hangman) guess() string {
 	var g string
-	fmt.Println("Type in a letter to guess or type 'hint' to get a hint or 'quit' to quit the game or 'restart' to restart: ")
+	fmt.Println(question.Render("Type in a letter to guess or type ") + highLight.Render("hint ") + question.Render("to get a hint or ") + highLight.Render("quit ") + question.Render("to quit the game or ") + highLight.Render("restart ") + question.Render("to restart:"))
 	fmt.Scanln(&g)
 	if g == "hint" {
 		h.getHint()
@@ -92,9 +245,9 @@ func (h *Hangman) guess() string {
 
 func (h *Hangman) getHint() {
 	if h.hint == 0 {
-		fmt.Println("You ran out of hints!")
+		fmt.Println(warning.Render("You ran out of hints!"))
 	} else if h.numOfCorrect == len(h.ans)-1 {
-		fmt.Println("You can't use hint now")
+		fmt.Println(warning.Render("You can't use hint now"))
 	} else {
 		h.hint -= 1
 		for {
@@ -128,34 +281,39 @@ func (h *Hangman) check(g string) {
 
 func (h *Hangman) print() bool {
 	if h.numOfCorrect == len(h.ans) {
-		fmt.Printf("Congrats! you solve the puzzel word: %s", h.ans)
+		fmt.Println(bold.Render("Congrats! you solve the puzzel word: ") + revealAnswer.Render(h.ans))
+		winAnimation()
 		return true
 	}
 	if h.live == 0 {
-		fmt.Printf("Noooo! you fail to solve the puzzel word: %s", h.ans)
+		fmt.Println(bold.Render("Noooo! you fail to solve the puzzel word: ") + revealAnswer.Render(h.ans))
+		lossAnimation()
 		return true
 	}
-	fmt.Print("Your current answer: ")
+	text := fmt.Sprint("Your current answer: ")
 	for i := 0; i < len(h.ans); i++ {
 		if string(h.ans[i]) != h.cur[i] {
-			fmt.Print("_ ")
+			text += fmt.Sprint(answer.Render("_ "))
 		} else {
-			fmt.Printf("%s ", string(h.ans[i]))
+			t := fmt.Sprintf("%s ", string(h.ans[i]))
+			t = fmt.Sprintf(answer.Render(t))
+			text += t
 		}
 	}
-	fmt.Println()
+	text += "\n"
 	keys := make([]string, 0, len(h.record))
 	for k := range h.record {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	fmt.Print("Letters have guessed: ")
+	text += fmt.Sprint("Letters have guessed: ")
 	for _, l := range keys {
-		fmt.Print(l, " ")
+		text += fmt.Sprint(bold.Render(l + " "))
 	}
-	fmt.Println()
-	fmt.Printf("%d Lives left\n", h.live)
-	fmt.Printf("%d hints left\n", h.hint)
+	text += "\n"
+	text += fmt.Sprintf("%s Lives left\n", smallHighLight.Render(strconv.Itoa(h.live)))
+	text += fmt.Sprintf("%s hints left\n", smallHighLight.Render(strconv.Itoa(h.hint)))
+	fmt.Println(border.Render(text))
 	return false
 }
 
@@ -166,20 +324,19 @@ func (h *Hangman) startGame() {
 	for {
 		g = h.guess()
 		if g == "quit" {
-			fmt.Println("You quit the game!")
+			fmt.Println(notification.Render("You quit the game!"))
 			break
 		}
 		if g == "restart" {
 			break
 		}
-		fmt.Println("----------------")
 		over = h.print()
 		if over {
 			break
 		}
 	}
 	if g == "restart" {
-		fmt.Println("Game is restarted!")
+		fmt.Println(notification.Render("Game is restarted!"))
 		h.startGame()
 	}
 }
@@ -192,6 +349,8 @@ func getWord() (string, error) {
 }
 
 func start(cmd *cobra.Command, args []string) {
+	titleStyle.BorderStyle(myCuteBorder)
+	fmt.Println(titleStyle.Render(title))
 	h := &Hangman{}
 	h.startGame()
 }
