@@ -53,9 +53,21 @@ var revealAnswer = lipgloss.NewStyle().
 var bold = lipgloss.NewStyle().
 	Bold(true)
 
+var myDisplayBorder = lipgloss.Border{
+	Top:         "-",
+	Bottom:      "-",
+	Left:        "│",
+	Right:       "│",
+	TopLeft:     "╭",
+	TopRight:    "╮",
+	BottomLeft:  "╰",
+	BottomRight: "╯",
+}
+
 var border = lipgloss.NewStyle().
-	Border(lipgloss.DoubleBorder()).
-	PaddingTop(1)
+	Border(myDisplayBorder).
+	Padding(1).
+	PaddingBottom(0)
 
 var notification = lipgloss.NewStyle().
 	Background(lipgloss.Color("#849c1e")).
@@ -80,7 +92,7 @@ var titleStyle = lipgloss.NewStyle().
 	PaddingBottom(1)
 
 // Make your own border
-var myCuteBorder = lipgloss.Border{
+var myTitleBorder = lipgloss.Border{
 	Top:         "=",
 	Bottom:      "=",
 	Left:        "||",
@@ -351,7 +363,7 @@ func getWord() (string, error) {
 }
 
 func start(cmd *cobra.Command, args []string) {
-	titleStyle.BorderStyle(myCuteBorder)
+	titleStyle.BorderStyle(myTitleBorder)
 	fmt.Println(titleStyle.Render(title))
 	h := &Hangman{}
 	h.startGame()
